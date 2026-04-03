@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Drawer, Table, Button, Space, Popconfirm, Modal, Form, Select, InputNumber, Input, Switch, message, Typography } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { darkTableCSS, darkModalCSS } from '../lib/ui';
 import { Recipe, RecipeIngredient, Ingredient } from '../lib/types';
 import { useRecipeIngredients } from '../hooks/useRecipeIngredients';
@@ -26,8 +26,20 @@ export const RecipeIngredientsDrawer: React.FC<Props> = ({
   const [editRow, setEditRow] = useState<RecipeIngredient | null>(null);
   const [addForm] = Form.useForm();
   const [editForm] = Form.useForm();
+  const [editingMerides, setEditingMerides] = useState(false);
+  const [meridesVal, setMeridesVal] = useState<number>(1);
 
   const ingMap = Object.fromEntries(ingredients.map(i => [i.id, i]));
+
+  async function saveMerides() {
+    if (!recipe) return;
+    const { error } = await (await import('../lib/supabase')).supabase
+      .from('recipes').update({ merides: meridesVal }).eq('id', recipe.id);
+    if (error) { message.error(error.message); return; }
+    setEditingMerides(false);
+    onCostChanged();
+    message.success('Merides updated');
+  }
 
   const drawerCSS = `${darkTableCSS}
     .ri-drawer .ant-drawer-content { background: #1a1a1a !important; }
@@ -190,9 +202,43 @@ export const RecipeIngredientsDrawer: React.FC<Props> = ({
       <Drawer
         className="ri-drawer"
         title={
-          <div>
-            <div style={{ fontSize: 18, color: '#60a5fa' }}>{recipe?.name}</div>
-            {recipe && <RestaurantBadge restaurants={recipe.restaurant} />}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+            <div>
+              <div style={{ fontSize: 18, color: '#60a5fa' }}>{recipe?.name}</div>
+              {recipe && <RestaurantBadge restaurants={recipe.restaurant} />}
+            </div>
+            {/* Merides — top right opposite title */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginRight: 8 }}>
+              <Text style={{ color: '#6b7280', fontSize: 12 }}>ΜΕΡΙΔΕΣ</Text>
+              {editingMerides ? (
+                <Space size={4}>
+                  <InputNumber
+                    value={meridesVal}
+                    onChange={v => setMeridesVal(v ?? 1)}
+                    min={1}
+                    size="small"
+                    style={{ width: 64 }}
+                    autoFocus
+                    onPressEnter={saveMerides}
+                  />
+                  <Button size="small" type="primary" icon={<CheckOutlined />} onClick={saveMerides} style={{ backgroundColor: '#22c55e', borderColor: '#22c55e' }} />
+                  <Button size="small" icon={<CloseOutlined />} onClick={() => setEditingMerides(false)} />
+                </Space>
+              ) : (
+                <Space size={4}>
+                  <Text style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 16 }}>{recipe?.merides ?? 1}</Text>
+                  {isEditor && (
+                    <Button
+                      size="small"
+                      type="text"
+                      icon={<EditOutlined />}
+                      style={{ color: '#60a5fa' }}
+                      onClick={() => { setMeridesVal(recipe?.merides ?? 1); setEditingMerides(true); }}
+                    />
+                  )}
+                </Space>
+              )}
+            </div>
           </div>
         }
         open={open}
