@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in { animation: fade-in 0.6s ease-out; }
+.animate-slide-up { animation: slide-up 0.8s ease-out; }
+
+/* Hide number input spinners */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none !important; display: none !important; }
+input[type="number"] { -moz-appearance: textfield !important; }
+
+/* Dark scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #1f2937; }
+::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+/* Ant Design dark overrides */
+.ant-select-dropdown { background-color: #1f2937 !important; }
+.ant-select-item { color: #d1d5db !important; }
+.ant-select-item-option-selected { background-color: #374151 !important; }
+.ant-select-item-option-active { background-color: #374151 !important; }
+.ant-input { background-color: #111827 !important; border-color: #374151 !important; color: #f1f5f9 !important; }
+.ant-input-number { background-color: #111827 !important; border-color: #374151 !important; }
+.ant-input-number-input { color: #f1f5f9 !important; background-color: #111827 !important; }
+.ant-select-selector { background-color: #111827 !important; border-color: #374151 !important; color: #f1f5f9 !important; }
+.ant-select-selection-item { color: #f1f5f9 !important; }
+.ant-select-arrow { color: #6b7280 !important; }
+.ant-picker { background-color: #111827 !important; border-color: #374151 !important; }
+.ant-pagination-item-active { border-color: #3b82f6 !important; }
+.ant-pagination-item-active a { color: #3b82f6 !important; }
+.ant-tag { border-radius: 4px !important; }
+.ant-dropdown-menu { background-color: #1f2937 !important; border: 1px solid #374151 !important; }
+.ant-dropdown-menu-item { color: #d1d5db !important; }
+.ant-dropdown-menu-item:hover { background-color: #374151 !important; }
+.ant-popconfirm-message-title { color: #f1f5f9 !important; }
