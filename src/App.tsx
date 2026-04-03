@@ -5,11 +5,13 @@ import {
   CoffeeOutlined,
   ShoppingOutlined,
   TeamOutlined,
+  FilePdfOutlined,
 } from '@ant-design/icons';
 import { OIK104MenuPage } from './pages/OIK104MenuPage';
 import { OIK512MenuPage } from './pages/OIK512MenuPage';
 import { IngredientsPage } from './pages/IngredientsPage';
 import { SuppliersPage } from './pages/SuppliersPage';
+import { ExportPage } from './pages/ExportPage';
 
 const { Header, Content, Sider } = Layout;
 
@@ -18,6 +20,7 @@ const NAV_ITEMS = [
   { key: '/oik512', label: 'OIK5.12 MENU', icon: <CoffeeOutlined /> },
   { key: '/ingredients', label: 'INGREDIENTS', icon: <ShoppingOutlined /> },
   { key: '/suppliers', label: 'SUPPLIERS', icon: <TeamOutlined /> },
+  { key: '/export', label: 'EXPORT PDF', icon: <FilePdfOutlined /> },
 ];
 
 const AppShell: React.FC = () => {
@@ -79,6 +82,7 @@ const AppShell: React.FC = () => {
             <Route path="/oik512" element={<OIK512MenuPage />} />
             <Route path="/ingredients" element={<IngredientsPage />} />
             <Route path="/suppliers" element={<SuppliersPage />} />
+            <Route path="/export" element={<ExportPage />} />
           </Routes>
         </Content>
       </Layout>
