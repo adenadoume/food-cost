@@ -143,12 +143,15 @@ def load_ingredients(supplier_map: dict):
         if m not in master_names:
             all_names.append(m)
 
-    # Build ingredient rows
+    # Build ingredient rows — deduplicate by name (keep first occurrence)
     rows = []
+    seen_names = set()
     for raw_name in all_names:
         name = str(raw_name).strip()
-        if not name:
+        if not name or name in seen_names:
             continue
+        seen_names.add(name)
+
         code_row = master_df[master_df["name"].str.strip() == name]
         code = code_row["code"].values[0] if not code_row.empty else None
 
@@ -156,16 +159,13 @@ def load_ingredients(supplier_map: dict):
         sup_name = info.get("supplier")
         sup_id = supplier_map.get(sup_name) if sup_name else None
 
-        # unit_type: default 'kg' unless Airtable says otherwise
-        unit_type = "kg"
-
         rows.append({
             "code":        clean_str(code),
             "name":        name,
             "cost_per_kg": info.get("cost_per_kg") or 0.0,
             "category":    info.get("category"),
             "supplier_id": sup_id,
-            "unit_type":   unit_type,
+            "unit_type":   "kg",
         })
 
     upsert_batch("ingredients", rows)
