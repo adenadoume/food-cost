@@ -37,6 +37,7 @@ const numCol = (title: string, key: keyof RecipeWithCosts, color = '#d1d5db') =>
 export const RecipeTable: React.FC<Props> = ({ recipes, loading, ingredients, onUpdate, onRefresh }) => {
   const [search, setSearch] = useState('');
   const [catFilter, setCatFilter] = useState<string | null>(null);
+  const [restFilter, setRestFilter] = useState<string | null>(null);
   const [editRecipe, setEditRecipe] = useState<RecipeWithCosts | null>(null);
   const [editMode, setEditMode] = useState<EditMode>(null);
   const [drawerRecipe, setDrawerRecipe] = useState<RecipeWithCosts | null>(null);
@@ -45,13 +46,14 @@ export const RecipeTable: React.FC<Props> = ({ recipes, loading, ingredients, on
     let rows = recipes;
     if (search) rows = rows.filter(r => r.name.toLowerCase().includes(search.toLowerCase()));
     if (catFilter) rows = rows.filter(r => r.category === catFilter);
+    if (restFilter) rows = rows.filter(r => r.restaurant.includes(restFilter));
     return [...rows].sort((a, b) => {
       const ra = CATEGORY_RANK[a.category ?? ''] ?? 999;
       const rb = CATEGORY_RANK[b.category ?? ''] ?? 999;
       if (ra !== rb) return ra - rb;
       return a.name.localeCompare(b.name, 'el');
     });
-  }, [recipes, search, catFilter]);
+  }, [recipes, search, catFilter, restFilter]);
 
   const categories = useMemo(() => {
     const cats = [...new Set(recipes.map(r => r.category).filter(Boolean))];
@@ -86,8 +88,34 @@ export const RecipeTable: React.FC<Props> = ({ recipes, loading, ingredients, on
       title: 'ΚΑΤΗΓΟΡΙΑ',
       dataIndex: 'category',
       key: 'category',
-      width: 180,
+      width: 160,
       render: (v: string) => <Text style={{ color: '#9ca3af', fontSize: 12 }}>{v ?? '—'}</Text>,
+    },
+    {
+      title: 'ΕΣΤΙΑΤΟΡΙΟ',
+      dataIndex: 'restaurant',
+      key: 'restaurant',
+      width: 160,
+      render: (rests: string[]) => (
+        <span style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          {(rests ?? []).map(r => (
+            <Tag
+              key={r}
+              style={{
+                backgroundColor: r === 'OIK104' ? '#3b82f622' : '#8b5cf622',
+                borderColor: r === 'OIK104' ? '#3b82f666' : '#8b5cf666',
+                color: r === 'OIK104' ? '#60a5fa' : '#a78bfa',
+                fontWeight: 600,
+                fontSize: 11,
+                borderRadius: 4,
+                margin: 0,
+              }}
+            >
+              {r === 'OIK512' ? 'OIK5.12' : r}
+            </Tag>
+          ))}
+        </span>
+      ),
     },
     numCol('ΚΟΣΤΟΣ', 'recipe_cost', '#d1d5db'),
     numCol('ΦΠΑ 13%', 'vat_13', '#9ca3af'),
@@ -174,6 +202,17 @@ export const RecipeTable: React.FC<Props> = ({ recipes, loading, ingredients, on
             onChange={setCatFilter}
             style={{ width: 220 }}
             options={categories.map(c => ({ value: c, label: c }))}
+          />
+          <Select
+            placeholder="Εστιατόριο"
+            allowClear
+            value={restFilter}
+            onChange={setRestFilter}
+            style={{ width: 150 }}
+            options={[
+              { value: 'OIK104', label: 'OIK104' },
+              { value: 'OIK512', label: 'OIK5.12' },
+            ]}
           />
           <div style={{ marginLeft: 'auto' }}>
             <Tag style={{ color: '#9ca3af', background: '#1f2937', borderColor: '#374151' }}>
