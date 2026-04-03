@@ -12,7 +12,7 @@ import { fmt } from '../lib/businessLogic';
 
 const { Text, Title } = Typography;
 
-export const IngredientsPage: React.FC = () => {
+export const IngredientsPage: React.FC<{ isEditor: boolean }> = ({ isEditor }) => {
   const { ingredients, loading, createIngredient, updateIngredient, deleteIngredient } = useIngredients();
   const { suppliers } = useSuppliers();
   const [search, setSearch] = useState('');
@@ -58,8 +58,8 @@ export const IngredientsPage: React.FC = () => {
       title: 'Supplier',
       key: 'supplier',
       width: 180,
-      render: (_: any, row: Ingredient) => {
-        const sup = (row as any).suppliers;
+      render: (_: unknown, row: Ingredient) => {
+        const sup = (row as Ingredient & { suppliers?: { name: string } }).suppliers;
         if (!sup) return <Text style={{ color: '#4b5563' }}>—</Text>;
         return (
           <Tag style={{
@@ -73,11 +73,11 @@ export const IngredientsPage: React.FC = () => {
         );
       },
     },
-    {
+    ...(isEditor ? [{
       title: '',
       key: 'actions',
       width: 90,
-      render: (_: any, row: Ingredient) => (
+      render: (_: unknown, row: Ingredient) => (
         <Space>
           <Button
             type="text"
@@ -97,16 +97,14 @@ export const IngredientsPage: React.FC = () => {
           </Popconfirm>
         </Space>
       ),
-    },
+    }] : []),
   ];
 
   return (
     <>
       <style>{darkTableCSS}</style>
       <div style={{ padding: '24px 24px 0' }}>
-        <Title level={3} style={{ color: '#34d399', marginBottom: 20 }}>
-          INGREDIENTS
-        </Title>
+        <Title level={3} style={{ color: '#34d399', marginBottom: 20 }}>INGREDIENTS</Title>
         <div style={tableContainerStyle}>
           <div style={{ ...tableHeaderBarStyle, gap: 12 }}>
             <Input
@@ -124,16 +122,18 @@ export const IngredientsPage: React.FC = () => {
               style={{ width: 220 }}
               options={INGREDIENT_CATEGORIES.map(c => ({ value: c, label: c }))}
             />
-            <div style={{ marginLeft: 'auto' }}>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => { setEditIngredient(null); setModalOpen(true); }}
-                style={{ backgroundColor: '#3b82f6' }}
-              >
-                Add Ingredient
-              </Button>
-            </div>
+            {isEditor && (
+              <div style={{ marginLeft: 'auto' }}>
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={() => { setEditIngredient(null); setModalOpen(true); }}
+                  style={{ backgroundColor: '#3b82f6' }}
+                >
+                  Add Ingredient
+                </Button>
+              </div>
+            )}
           </div>
 
           <Table
@@ -143,20 +143,22 @@ export const IngredientsPage: React.FC = () => {
             rowKey="id"
             loading={loading}
             pagination={{ pageSize: 50, showSizeChanger: true }}
-            rowClassName={(_, i) => tableRowClassName(i)}
+            rowClassName={(row, i) => tableRowClassName(row, i)}
             size="small"
           />
         </div>
       </div>
 
-      <IngredientFormModal
-        open={modalOpen}
-        ingredient={editIngredient}
-        suppliers={suppliers}
-        onClose={() => { setModalOpen(false); setEditIngredient(null); }}
-        onCreate={createIngredient}
-        onUpdate={updateIngredient}
-      />
+      {isEditor && (
+        <IngredientFormModal
+          open={modalOpen}
+          ingredient={editIngredient}
+          suppliers={suppliers}
+          onClose={() => { setModalOpen(false); setEditIngredient(null); }}
+          onCreate={createIngredient}
+          onUpdate={updateIngredient}
+        />
+      )}
     </>
   );
 };

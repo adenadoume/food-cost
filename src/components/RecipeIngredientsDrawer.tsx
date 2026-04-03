@@ -15,10 +15,11 @@ interface Props {
   onClose: () => void;
   ingredients: Ingredient[];
   onCostChanged: () => void;
+  isEditor: boolean;
 }
 
 export const RecipeIngredientsDrawer: React.FC<Props> = ({
-  recipe, open, onClose, ingredients, onCostChanged
+  recipe, open, onClose, ingredients, onCostChanged, isEditor
 }) => {
   const { rows, loading, addRow, updateRow, deleteRow } = useRecipeIngredients(recipe?.id ?? null);
   const [addOpen, setAddOpen] = useState(false);
@@ -79,11 +80,11 @@ export const RecipeIngredientsDrawer: React.FC<Props> = ({
         return <Text style={{ color: '#34d399', fontWeight: 600 }}>{fmt(lc)}</Text>;
       },
     },
-    {
+    ...(isEditor ? [{
       title: '',
       key: 'actions',
       width: 80,
-      render: (_: any, row: RecipeIngredient) => (
+      render: (_: unknown, row: RecipeIngredient) => (
         <Space>
           <Button
             type="text"
@@ -112,7 +113,7 @@ export const RecipeIngredientsDrawer: React.FC<Props> = ({
           </Popconfirm>
         </Space>
       ),
-    },
+    }] : []),
   ];
 
   const totalCostRows = rows.reduce((sum, r) => {
@@ -197,7 +198,7 @@ export const RecipeIngredientsDrawer: React.FC<Props> = ({
         open={open}
         onClose={onClose}
         width={760}
-        extra={
+        extra={isEditor ? (
           <Button
             type="primary"
             icon={<PlusOutlined />}
@@ -206,7 +207,7 @@ export const RecipeIngredientsDrawer: React.FC<Props> = ({
           >
             Add Ingredient
           </Button>
-        }
+        ) : undefined}
       >
         <Table
           className="dark-table"
@@ -227,7 +228,7 @@ export const RecipeIngredientsDrawer: React.FC<Props> = ({
                   {fmt(totalCostRows)}
                 </Text>
               </Table.Summary.Cell>
-              <Table.Summary.Cell index={5} />
+              {isEditor && <Table.Summary.Cell index={5} />}
             </Table.Summary.Row>
           )}
         />

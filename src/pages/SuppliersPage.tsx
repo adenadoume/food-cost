@@ -8,7 +8,7 @@ import { Supplier } from '../lib/types';
 
 const { Text, Title } = Typography;
 
-export const SuppliersPage: React.FC = () => {
+export const SuppliersPage: React.FC<{ isEditor: boolean }> = ({ isEditor }) => {
   const { suppliers, loading, createSupplier, updateSupplier, deleteSupplier } = useSuppliers();
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
@@ -58,11 +58,11 @@ export const SuppliersPage: React.FC = () => {
       width: 140,
       render: (v: string) => <Text style={{ color: '#9ca3af' }}>{v ?? '—'}</Text>,
     },
-    {
+    ...(isEditor ? [{
       title: '',
       key: 'actions',
       width: 90,
-      render: (_: any, row: Supplier) => (
+      render: (_: unknown, row: Supplier) => (
         <Space>
           <Button
             type="text"
@@ -81,16 +81,14 @@ export const SuppliersPage: React.FC = () => {
           </Popconfirm>
         </Space>
       ),
-    },
+    }] : []),
   ];
 
   return (
     <>
       <style>{darkTableCSS}</style>
       <div style={{ padding: '24px 24px 0' }}>
-        <Title level={3} style={{ color: '#fb923c', marginBottom: 20 }}>
-          SUPPLIERS
-        </Title>
+        <Title level={3} style={{ color: '#fb923c', marginBottom: 20 }}>SUPPLIERS</Title>
         <div style={tableContainerStyle}>
           <div style={{ ...tableHeaderBarStyle, gap: 12 }}>
             <Input
@@ -100,16 +98,18 @@ export const SuppliersPage: React.FC = () => {
               onChange={e => setSearch(e.target.value)}
               style={{ backgroundColor: '#111827', borderColor: '#374151', color: '#f1f5f9', width: 260 }}
             />
-            <div style={{ marginLeft: 'auto' }}>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => { setEditSupplier(null); setModalOpen(true); }}
-                style={{ backgroundColor: '#3b82f6' }}
-              >
-                Add Supplier
-              </Button>
-            </div>
+            {isEditor && (
+              <div style={{ marginLeft: 'auto' }}>
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={() => { setEditSupplier(null); setModalOpen(true); }}
+                  style={{ backgroundColor: '#3b82f6' }}
+                >
+                  Add Supplier
+                </Button>
+              </div>
+            )}
           </div>
           <Table
             className="dark-table"
@@ -118,19 +118,21 @@ export const SuppliersPage: React.FC = () => {
             rowKey="id"
             loading={loading}
             pagination={{ pageSize: 50 }}
-            rowClassName={(_, i) => tableRowClassName(i)}
+            rowClassName={(row, i) => tableRowClassName(row, i)}
             size="small"
           />
         </div>
       </div>
 
-      <SupplierFormModal
-        open={modalOpen}
-        supplier={editSupplier}
-        onClose={() => { setModalOpen(false); setEditSupplier(null); }}
-        onCreate={createSupplier}
-        onUpdate={updateSupplier}
-      />
+      {isEditor && (
+        <SupplierFormModal
+          open={modalOpen}
+          supplier={editSupplier}
+          onClose={() => { setModalOpen(false); setEditSupplier(null); }}
+          onCreate={createSupplier}
+          onUpdate={updateSupplier}
+        />
+      )}
     </>
   );
 };

@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { Table, Input, Select, Button, Space, Dropdown, Typography, Tag } from 'antd';
+import { Table, Input, Select, Button, Dropdown, Typography, Tag } from 'antd';
 import type { MenuProps } from 'antd';
 import { SearchOutlined, MoreOutlined, BookOutlined } from '@ant-design/icons';
 import { darkTableCSS, tableRowClassName, tableContainerStyle, tableHeaderBarStyle } from '../lib/ui';
 import { RecipeWithCosts, Recipe, Ingredient } from '../lib/types';
-import { CATEGORY_ORDER, CATEGORY_RANK } from '../lib/constants';
+import { CATEGORY_RANK } from '../lib/constants';
 import { fmt } from '../lib/businessLogic';
 import { EditRecipeModal } from './EditRecipeModal';
 import { RecipeIngredientsDrawer } from './RecipeIngredientsDrawer';
@@ -17,6 +17,7 @@ interface Props {
   ingredients: Ingredient[];
   onUpdate: (id: string, values: Partial<Recipe>) => Promise<void>;
   onRefresh: () => void;
+  isEditor: boolean;
 }
 
 type EditMode = 'name' | 'price' | 'merides' | 'full' | null;
@@ -34,7 +35,7 @@ const numCol = (title: string, key: keyof RecipeWithCosts, color = '#d1d5db') =>
   ),
 });
 
-export const RecipeTable: React.FC<Props> = ({ recipes, loading, ingredients, onUpdate, onRefresh }) => {
+export const RecipeTable: React.FC<Props> = ({ recipes, loading, ingredients, onUpdate, onRefresh, isEditor }) => {
   const [search, setSearch] = useState('');
   const [catFilter, setCatFilter] = useState<string | null>(null);
   const [restFilter, setRestFilter] = useState<string | null>(null);
@@ -62,6 +63,13 @@ export const RecipeTable: React.FC<Props> = ({ recipes, loading, ingredients, on
 
   const columns = [
     {
+      title: 'Code',
+      dataIndex: 'code',
+      key: 'code',
+      width: 70,
+      render: (v: string) => <Text style={{ color: '#9ca3af', fontSize: 11 }}>{v ?? '-'}</Text>,
+    },
+    {
       title: 'ΣΥΝΤΑΓΗ',
       dataIndex: 'name',
       key: 'name',
@@ -69,14 +77,8 @@ export const RecipeTable: React.FC<Props> = ({ recipes, loading, ingredients, on
       render: (name: string, row: RecipeWithCosts) => (
         <button
           style={{
-            background: 'none',
-            border: 'none',
-            color: '#60a5fa',
-            cursor: 'pointer',
-            padding: 0,
-            fontWeight: 600,
-            fontSize: 14,
-            textAlign: 'left',
+            background: 'none', border: 'none', color: '#60a5fa',
+            cursor: 'pointer', padding: 0, fontWeight: 600, fontSize: 14, textAlign: 'left',
           }}
           onClick={() => setDrawerRecipe(row)}
         >
@@ -99,30 +101,24 @@ export const RecipeTable: React.FC<Props> = ({ recipes, loading, ingredients, on
       render: (rests: string[]) => (
         <span style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
           {(rests ?? []).map(r => (
-            <Tag
-              key={r}
-              style={{
-                backgroundColor: r === 'OIK104' ? '#3b82f622' : '#8b5cf622',
-                borderColor: r === 'OIK104' ? '#3b82f666' : '#8b5cf666',
-                color: r === 'OIK104' ? '#60a5fa' : '#a78bfa',
-                fontWeight: 600,
-                fontSize: 11,
-                borderRadius: 4,
-                margin: 0,
-              }}
-            >
+            <Tag key={r} style={{
+              backgroundColor: r === 'OIK104' ? '#3b82f622' : '#8b5cf622',
+              borderColor:     r === 'OIK104' ? '#3b82f666' : '#8b5cf666',
+              color:           r === 'OIK104' ? '#60a5fa'   : '#a78bfa',
+              fontWeight: 600, fontSize: 11, borderRadius: 4, margin: 0,
+            }}>
               {r === 'OIK512' ? 'OIK5.12' : r}
             </Tag>
           ))}
         </span>
       ),
     },
-    numCol('ΚΟΣΤΟΣ', 'recipe_cost', '#d1d5db'),
-    numCol('ΦΠΑ 13%', 'vat_13', '#9ca3af'),
-    numCol('ΣΥΝΟΛΟ', 'total_cost', '#f1f5f9'),
+    numCol('ΚΟΣΤΟΣ',      'recipe_cost',      '#d1d5db'),
+    numCol('ΦΠΑ 13%',     'vat_13',           '#9ca3af'),
+    numCol('ΣΥΝΟΛΟ',      'total_cost',       '#f1f5f9'),
     numCol('ΣΥΝ.ΜΕΡΙΔΑ', 'total_per_meride', '#60a5fa'),
-    numCol('x3', 'price_x3', '#34d399'),
-    numCol('x4', 'price_x4', '#a78bfa'),
+    numCol('x3',          'price_x3',         '#34d399'),
+    numCol('x4',          'price_x4',         '#a78bfa'),
     {
       title: 'PRICE',
       dataIndex: 'final_price',
@@ -135,11 +131,12 @@ export const RecipeTable: React.FC<Props> = ({ recipes, loading, ingredients, on
         </Text>
       ),
     },
-    {
+    // Actions column — only for editors; view-only users can still open the drawer via recipe name click
+    ...(isEditor ? [{
       title: '',
       key: 'actions',
       width: 50,
-      render: (_: any, row: RecipeWithCosts) => {
+      render: (_: unknown, row: RecipeWithCosts) => {
         const items: MenuProps['items'] = [
           {
             key: 'ingredients',
@@ -147,27 +144,11 @@ export const RecipeTable: React.FC<Props> = ({ recipes, loading, ingredients, on
             label: 'Ingredients',
             onClick: () => setDrawerRecipe(row),
           },
-          { type: 'divider' },
-          {
-            key: 'name',
-            label: 'Edit Recipe Name',
-            onClick: () => { setEditRecipe(row); setEditMode('name'); },
-          },
-          {
-            key: 'merides',
-            label: 'Merides',
-            onClick: () => { setEditRecipe(row); setEditMode('merides'); },
-          },
-          {
-            key: 'price',
-            label: 'Edit Price',
-            onClick: () => { setEditRecipe(row); setEditMode('price'); },
-          },
-          {
-            key: 'full',
-            label: 'Edit All Fields',
-            onClick: () => { setEditRecipe(row); setEditMode('full'); },
-          },
+          { type: 'divider' as const },
+          { key: 'name',    label: 'Edit Recipe Name', onClick: () => { setEditRecipe(row); setEditMode('name'); } },
+          { key: 'merides', label: 'Merides',          onClick: () => { setEditRecipe(row); setEditMode('merides'); } },
+          { key: 'price',   label: 'Edit Price',       onClick: () => { setEditRecipe(row); setEditMode('price'); } },
+          { key: 'full',    label: 'Edit All Fields',  onClick: () => { setEditRecipe(row); setEditMode('full'); } },
         ];
         return (
           <Dropdown menu={{ items }} trigger={['click']}>
@@ -175,7 +156,7 @@ export const RecipeTable: React.FC<Props> = ({ recipes, loading, ingredients, on
           </Dropdown>
         );
       },
-    },
+    }] : []),
   ];
 
   return (
@@ -188,12 +169,7 @@ export const RecipeTable: React.FC<Props> = ({ recipes, loading, ingredients, on
             placeholder="Search"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            style={{
-              backgroundColor: '#111827',
-              borderColor: '#374151',
-              color: '#f1f5f9',
-              width: 260,
-            }}
+            style={{ backgroundColor: '#111827', borderColor: '#374151', color: '#f1f5f9', width: 260 }}
           />
           <Select
             placeholder="Κατηγορία"
@@ -233,12 +209,14 @@ export const RecipeTable: React.FC<Props> = ({ recipes, loading, ingredients, on
         />
       </div>
 
-      <EditRecipeModal
-        recipe={editRecipe}
-        mode={editMode}
-        onClose={() => { setEditRecipe(null); setEditMode(null); }}
-        onSave={onUpdate}
-      />
+      {isEditor && (
+        <EditRecipeModal
+          recipe={editRecipe}
+          mode={editMode}
+          onClose={() => { setEditRecipe(null); setEditMode(null); }}
+          onSave={onUpdate}
+        />
+      )}
 
       <RecipeIngredientsDrawer
         recipe={drawerRecipe}
@@ -246,6 +224,7 @@ export const RecipeTable: React.FC<Props> = ({ recipes, loading, ingredients, on
         onClose={() => setDrawerRecipe(null)}
         ingredients={ingredients}
         onCostChanged={onRefresh}
+        isEditor={isEditor}
       />
     </>
   );
