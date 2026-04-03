@@ -15,7 +15,7 @@ async function fetchAllBridgeRows(recipeIds: string[]): Promise<RecipeIngredient
 
 function computeCosts(recipe: Recipe, bridgeRows: RecipeIngredient[]): RecipeWithCosts {
   const lines = bridgeRows.filter(r => r.recipe_id === recipe.id);
-  const cost = recipeCost(lines as any);
+  const cost = recipeCost(lines);
   const vat = vatAmount(cost);
   const total = totalCost(cost);
   const perMeride = totalPerMeride(total, recipe.merides);
@@ -46,10 +46,10 @@ export function useRecipes(restaurantFilter?: string) {
       const { data: recipeData, error: recipeErr } = await query;
       if (recipeErr) throw recipeErr;
 
-      const ids = (recipeData ?? []).map(r => r.id);
+      const ids = (recipeData ?? []).map((r: Recipe) => r.id);
       const bridgeRows = await fetchAllBridgeRows(ids);
 
-      const enriched = (recipeData ?? []).map(r => computeCosts(r, bridgeRows));
+      const enriched = (recipeData ?? []).map((r: Recipe) => computeCosts(r, bridgeRows));
       setRecipes(enriched);
     } catch (e: any) {
       setError(e.message ?? 'Error loading recipes');

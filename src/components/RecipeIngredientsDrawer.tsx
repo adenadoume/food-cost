@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Drawer, Table, Button, Space, Popconfirm, Modal, Form, Select, InputNumber, Input, Switch, message, Typography } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { darkTableCSS, darkModalCSS } from 'ui';
+import { darkTableCSS, darkModalCSS } from '../lib/ui';
 import { Recipe, RecipeIngredient, Ingredient } from '../lib/types';
 import { useRecipeIngredients } from '../hooks/useRecipeIngredients';
 import { lineCost, unitLabel, fmt } from '../lib/businessLogic';

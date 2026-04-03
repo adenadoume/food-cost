@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Table, Input, Button, Space, Popconfirm, Typography } from 'antd';
 import { PlusOutlined, SearchOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { darkTableCSS, tableRowClassName, tableContainerStyle, tableHeaderBarStyle } from 'ui';
+import { darkTableCSS, tableRowClassName, tableContainerStyle, tableHeaderBarStyle } from '../lib/ui';
 import { useSuppliers } from '../hooks/useSuppliers';
 import { SupplierFormModal } from '../components/SupplierFormModal';
 import { Supplier } from '../lib/types';

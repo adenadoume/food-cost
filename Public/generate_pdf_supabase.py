@@ -78,14 +78,22 @@ def fetch_all_bridge_rows(recipe_ids):
     """Fetch all recipe_ingredients joined with ingredients for given recipe IDs."""
     if not recipe_ids:
         return []
-    ids_str = ",".join(recipe_ids)
-    return sb_get(
-        "recipe_ingredients",
-        {
-            "select": "recipe_id,grams,kg_tmx,ingredients(name,cost_per_kg,unit_type)",
-            "recipe_id": f"in.({ids_str})",
-        }
-    )
+        
+    all_rows = []
+    chunk_size = 20
+    for i in range(0, len(recipe_ids), chunk_size):
+        chunk_ids = recipe_ids[i:i+chunk_size]
+        ids_str = ",".join(chunk_ids)
+        rows = sb_get(
+            "recipe_ingredients",
+            {
+                "select": "recipe_id,grams,kg_tmx,ingredients(name,cost_per_kg,unit_type)",
+                "recipe_id": f"in.({ids_str})",
+                "limit": 1000
+            }
+        )
+        all_rows.extend(rows)
+    return all_rows
 
 
 # ── Business logic (mirrors v38) ────────────────────────────────────────────
@@ -349,8 +357,20 @@ def main():
     print(f"Fetching recipes ({filter_arg})...")
     recipes = fetch_recipes(filter_arg)
 
-    # Sort: category order, then name
+    def rest_rank(r):
+        """OIK104-only → 0, both → 1, OIK512-only → 2"""
+        rests = r.get("restaurant") or []
+        has104 = "OIK104" in rests
+        has512 = "OIK512" in rests
+        if has104 and has512:
+            return 1
+        if has104:
+            return 0
+        return 2
+
+    # Sort: restaurant (OIK104 first, then shared, then OIK512), then category, then name
     recipes.sort(key=lambda r: (
+        rest_rank(r),
         CAT_RANK.get(r.get("category") or "", 999),
         r.get("name", "")
     ))

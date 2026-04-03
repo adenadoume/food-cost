@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Modal, Form, Input, InputNumber, Select, Button, Space, message } from 'antd';
-import { darkModalCSS } from 'ui';
+import { darkModalCSS } from '../lib/ui';
 import { Recipe } from '../lib/types';
 import { CATEGORY_ORDER } from '../lib/constants';
 

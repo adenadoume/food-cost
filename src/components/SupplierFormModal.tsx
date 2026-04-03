@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Modal, Form, Input, Button, Space, message } from 'antd';
-import { darkModalCSS } from 'ui';
+import { darkModalCSS } from '../lib/ui';
 import { Supplier } from '../lib/types';
 
 interface Props {

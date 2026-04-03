@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Table, Input, Select, Button, Space, Dropdown, Typography, Tag } from 'antd';
 import type { MenuProps } from 'antd';
 import { SearchOutlined, MoreOutlined, BookOutlined } from '@ant-design/icons';
-import { darkTableCSS, tableRowClassName, tableContainerStyle, tableHeaderBarStyle } from 'ui';
+import { darkTableCSS, tableRowClassName, tableContainerStyle, tableHeaderBarStyle } from '../lib/ui';
 import { RecipeWithCosts, Recipe, Ingredient } from '../lib/types';
 import { CATEGORY_ORDER, CATEGORY_RANK } from '../lib/constants';
 import { fmt } from '../lib/businessLogic';
