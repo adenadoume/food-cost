@@ -113,6 +113,29 @@ export const RecipeTable: React.FC<Props> = ({ recipes, loading, ingredients, on
         </span>
       ),
     },
+    {
+      title: 'ΜΕΡΙΔΕΣ',
+      dataIndex: 'merides',
+      key: 'merides',
+      width: 80,
+      sorter: (a: RecipeWithCosts, b: RecipeWithCosts) => a.merides - b.merides,
+      render: (v: number, row: RecipeWithCosts) =>
+        isEditor ? (
+          <button
+            style={{
+              background: 'none', border: 'none', color: '#f1f5f9',
+              cursor: 'pointer', padding: '2px 6px', borderRadius: 4,
+              fontWeight: 600, fontSize: 13,
+            }}
+            title="Click to edit merides"
+            onClick={() => { setEditRecipe(row); setEditMode('merides'); }}
+          >
+            {v ?? 1}
+          </button>
+        ) : (
+          <Text style={{ color: '#f1f5f9', fontWeight: 600 }}>{v ?? 1}</Text>
+        ),
+    },
     numCol('ΚΟΣΤΟΣ',      'recipe_cost',      '#d1d5db'),
     numCol('ΦΠΑ 13%',     'vat_13',           '#9ca3af'),
     numCol('ΣΥΝΟΛΟ',      'total_cost',       '#f1f5f9'),
