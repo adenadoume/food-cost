@@ -29,6 +29,13 @@ export const IngredientsPage: React.FC<{ isEditor: boolean }> = ({ isEditor }) =
 
   const columns = [
     {
+      title: 'Code',
+      dataIndex: 'code',
+      key: 'code',
+      width: 70,
+      render: (v: string) => <Text style={{ color: '#9ca3af', fontSize: 11 }}>{v ?? '-'}</Text>,
+    },
+    {
       title: 'Ingredient',
       dataIndex: 'name',
       key: 'name',
@@ -142,6 +149,7 @@ export const IngredientsPage: React.FC<{ isEditor: boolean }> = ({ isEditor }) =
             columns={columns}
             rowKey="id"
             loading={loading}
+            scroll={{ x: 'max-content', y: 'calc(100vh - 220px)' }}
             pagination={{ pageSize: 50, showSizeChanger: true }}
             rowClassName={(row, i) => tableRowClassName(row, i)}
             size="small"
