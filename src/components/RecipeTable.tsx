@@ -204,7 +204,7 @@ export const RecipeTable: React.FC<Props> = ({ recipes, loading, ingredients, on
           rowKey="id"
           loading={loading}
           pagination={{ pageSize: 50, showSizeChanger: true, pageSizeOptions: ['25', '50', '100'] }}
-          rowClassName={(_, i) => tableRowClassName(i)}
+          rowClassName={(row, i) => tableRowClassName(row, i)}
           size="small"
         />
       </div>
