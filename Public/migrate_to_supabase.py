@@ -23,9 +23,10 @@ import pandas as pd
 import openpyxl
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://hgqigqmzgdrmkerxkwaa.supabase.co")
-SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY",
-    "REMOVED_SET_VIA_ENV_VAR"
-)
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
+if not SUPABASE_KEY:
+    print("ERROR: Set SUPABASE_SERVICE_ROLE_KEY env var before running.")
+    sys.exit(1)
 
 from supabase import create_client
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -189,7 +190,45 @@ def load_recipes_and_bridge(ingredient_map: dict):
     )
     df["eff_name"] = df["eff_name"].astype(str).str.strip()
 
-    rest512_col = "RESTAURANT (from OIK512 MENU_) (from OIK512 MENU INGREDIENTS_)"
+    # Build restaurant + merides + final_price lookup from FOOD COST MENU 02APR26.csv
+    # This is the authoritative source for restaurant assignment
+    try:
+        menu_df = pd.read_csv("FOOD COST MENU 02APR26.csv", encoding="utf-8")
+    except Exception:
+        menu_df = pd.read_csv("FOOD COST MENU 02APR26.csv", encoding="cp1253")
+
+    def get_restaurants(rest_str):
+        """Parse RESTAURANT column from FOOD COST MENU."""
+        if pd.isna(rest_str):
+            return ["OIK104"]
+        s = str(rest_str).strip()
+        if "," in s:
+            # e.g. "OIK104,OIK512"
+            parts = [p.strip() for p in s.split(",")]
+            result = []
+            for p in parts:
+                if "OIK104" in p and "OIK512" not in p:
+                    result.append("OIK104")
+                elif "OIK512" in p:
+                    result.append("OIK512")
+            return result if result else ["OIK104"]
+        if "OIK512" in s:
+            return ["OIK512"]
+        if "OIK104" in s:
+            return ["OIK104"]
+        return ["OIK104"]  # default
+
+    # Build lookup: RECIPE NAME -> {restaurant, merides, final_price}
+    menu_lookup = {}
+    for _, r in menu_df.iterrows():
+        rname = clean_str(r.get("RECIPE NAME"))
+        if not rname:
+            continue
+        menu_lookup[rname] = {
+            "restaurant":  get_restaurants(r.get("RESTAURANT")),
+            "merides":     int(r.get("MERIDES") or 1),
+            "final_price": parse_num(r.get("FINAL PRICE")) or 0.0,
+        }
 
     # Aggregate per recipe
     recipe_rows = []
@@ -197,17 +236,18 @@ def load_recipes_and_bridge(ingredient_map: dict):
 
     for name, group in df.groupby("eff_name", sort=False):
         first = group.iloc[0]
+        orig_name = clean_str(first.get("RECIPENAME"))  # original (Greek) name
 
-        # Restaurant assignment from OIK512 column
-        rest512_vals = group[rest512_col].dropna().astype(str).str.strip().unique()
-        restaurants = []
-        if any("OIK104" in v for v in rest512_vals):
-            restaurants.append("OIK104")
-        if any("OIK512" in v for v in rest512_vals):
-            restaurants.append("OIK512")
-        if not restaurants:
-            # NaN = only in OIK104 (this is from OIK104 menu ingredients)
-            restaurants = ["OIK104"]
+        # Look up restaurant from FOOD COST MENU:
+        # 1. Try effective (possibly English) name first
+        # 2. Fall back to original RECIPENAME
+        menu_info = menu_lookup.get(name) or menu_lookup.get(orig_name) or {}
+        restaurants  = menu_info.get("restaurant", ["OIK104"])
+        merides      = menu_info.get("merides", 1)
+        final_price  = menu_info.get("final_price", 0.0)
+
+        if not menu_info:
+            print(f"  ⚠ Recipe not found in FOOD COST MENU: '{name}' (orig: '{orig_name}') — defaulting to OIK104")
 
         cat = clean_str(first.get("CATEGORY") or first.get("CATEGORY_"))
         code = clean_str(first.get("RECIPE CODE"))
@@ -217,8 +257,8 @@ def load_recipes_and_bridge(ingredient_map: dict):
             "name":        name,
             "category":    cat,
             "restaurant":  restaurants,
-            "merides":     1,
-            "final_price": 0.0,
+            "merides":     merides,
+            "final_price": final_price,
         })
         seen_recipes[name] = None  # placeholder for id
 
