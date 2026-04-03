@@ -187,7 +187,8 @@ const AppShell: React.FC = () => {
         )}
 
         <Content style={{ background: '#0f172a', minHeight: '100vh' }}>
-          <Routes>
+          {/* key={user?.id ?? 'anon'} forces remount on login/logout so hooks refetch with new JWT */}
+          <Routes key={user?.id ?? 'anon'}>
             <Route path="/"            element={<Navigate to="/oik104" replace />} />
             <Route path="/oik104"      element={<OIK104MenuPage isEditor={isEditor} />} />
             <Route path="/oik512"      element={<OIK512MenuPage isEditor={isEditor} />} />
